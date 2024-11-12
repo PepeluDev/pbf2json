@@ -69,7 +69,7 @@ function createReadStream( config ){
 function createJsonDecodeStream(){
   return through.obj( function( str, enc, next ){
     try {
-      var o = JSON.parse( str );
+      var o = parseJsonStr(str, enc);
       if( o ){ this.push( o ); }
     }
     catch( e ){
@@ -78,6 +78,24 @@ function createJsonDecodeStream(){
     finally {
       next();
     }
+  });
+}
+
+const idPattern = /"id":(\d+),/;
+
+function parseJsonStr(str, enc) {
+  var parsedStr = str.toString(enc);
+
+  return JSON.parse(parsedStr, (key, value) => {
+
+    if( key === 'id' ) {
+      const match = parsedStr.match(idPattern);
+      if (match) {
+        return String(match[1]);
+      }
+    }
+
+    return value;
   });
 }
 
